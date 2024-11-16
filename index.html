@@ -344,6 +344,7 @@
                 </span>
             </li>
         </ul>
+        <p>CloudFlare：<text id="cf"></text></p>
         <div class="snackbar__done mdc-snackbar mdc-snackbar--leading" data-mdc-auto-init="MDCSnackbar">
             <div class="mdc-snackbar__surface">
                 <div class="mdc-snackbar__label" role="status" aria-live="polite">
@@ -368,7 +369,43 @@
     <script src="https://unpkg.com/stopwatchjs@0.1.1/stopwatch.min.js" integrity="sha384-YVHQrJc4DzNQAtLqXkQ+16NBc9BuQSEWt5At/0hgASbDJ+659CMhYJeuh2EHtqJ8" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/humanize-duration/3.20.0/humanize-duration.min.js" integrity="sha512-JShw4mNIkiEIb5OONFCU/5ZnNL+V5srA+SW5/ksY3DhPalaEWfvrKumgY15wluFpyjj3HuXZRVWwJpwXe/ItSw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/filesize/4.1.2/filesize.min.js" integrity="sha512-O0CmVwwrC4+8edNq+d8LuP0Dz8vky11Rjs9l8SxmIONoF1ymY9ozMP9rg575Cgnxh/CSqP33zvIUl65a5TE0Jw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-
+        <script>
+        async function updateCloudflareInfo() {
+          try {
+            const response = await fetch("/cdn-cgi/trace");
+            if (response.ok) {
+              const data = await response.text();
+              const lines = data.split("\n"); // 修改为使用正确的换行符
+              const info = {};
+              lines.forEach((line) => {
+                const parts = line.split("=");
+                if (parts.length === 2) {
+                  info[parts[0]] = parts[1];
+                }
+              });
+              const cfElement = document.getElementById("cf");
+              const displayText =
+                info.loc +
+                " " +
+                info.ip +
+                " | " +
+                info.colo +
+                " | " +
+                info.http +
+                " | " +
+                info.visit_scheme +
+                " | " +
+                info.tls +
+                " | " +
+                info.kex;
+              cfElement.textContent = displayText;
+            }
+          } catch (error) {
+            console.error("获取Cloudflare节点信息失败: ", error);
+          }
+        }
+        window.addEventListener("load", updateCloudflareInfo);
+    </script>
     <script>
         mdc.autoInit();
 
